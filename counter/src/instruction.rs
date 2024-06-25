@@ -3,14 +3,14 @@ use borsh_derive::{BorshDeserialize, BorshSerialize};
 use solana_program::program_error::ProgramError;
 
 #[derive(Debug, BorshDeserialize, BorshSerialize)]
-pub struct UpdateArgs {
+pub struct InputArgs {
     pub value: u32,
 }
 
 pub enum CounterInstructions {
-    Increment,
-    Decrement,
-    Update(UpdateArgs),
+    Increment(InputArgs),
+    Decrement(InputArgs),
+    Update(InputArgs),
     Reset,
 }
 
@@ -21,9 +21,9 @@ impl CounterInstructions {
             .ok_or(ProgramError::InvalidInstructionData)?;
 
         Ok(match variant {
-            0 => Self::Increment,
-            1 => Self::Decrement,
-            2 => Self::Update(UpdateArgs::try_from_slice(rest).unwrap()),
+            0 => Self::Increment(InputArgs::try_from_slice(rest).unwrap()),
+            1 => Self::Decrement(InputArgs::try_from_slice(rest).unwrap()),
+            2 => Self::Update(InputArgs::try_from_slice(rest).unwrap()),
             3 => Self::Reset,
             _ => return Err(ProgramError::InvalidInstructionData),
         })

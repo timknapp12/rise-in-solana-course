@@ -34,11 +34,15 @@ pub fn process_instruction(
     let mut counter_account = CounterAccount::try_from_slice(&account.data.borrow())?;
 
     match instruction {
-        CounterInstructions::Increment => {
-            counter_account.counter += 1;
+        CounterInstructions::Increment(args) => {
+            counter_account.counter = args.value + 1;
         }
-        CounterInstructions::Decrement => {
-            counter_account.counter -= 1;
+        CounterInstructions::Decrement(args) => {
+            if args.value == 0 {
+                counter_account.counter = 0;
+            } else {
+                counter_account.counter = args.value - 1;
+            }
         }
         CounterInstructions::Reset => {
             counter_account.counter = 0;
@@ -80,20 +84,23 @@ mod test {
 
         let accounts = vec![account];
 
-        let increment_instruction_data: Vec<u8> = vec![0];
-        let decrement_instruction_data: Vec<u8> = vec![1];
+        let mut increment_instruction_data: Vec<u8> = vec![0];
+        let mut decrement_instruction_data: Vec<u8> = vec![1];
         let mut update_instruction_data: Vec<u8> = vec![2];
         let reset_instruction_data: Vec<u8> = vec![3];
 
+        let increment_value = 4u32;
+        increment_instruction_data.extend_from_slice(&increment_value.to_le_bytes());
         process_instruction(&program_id, &accounts, &increment_instruction_data).unwrap();
 
         assert_eq!(
             CounterAccount::try_from_slice(&accounts[0].data.borrow())
                 .unwrap()
                 .counter,
-            1
+            5
         );
-
+        let decrement_value = 0u32;
+        decrement_instruction_data.extend_from_slice(&decrement_value.to_le_bytes());
         process_instruction(&program_id, &accounts, &decrement_instruction_data).unwrap();
 
         assert_eq!(
