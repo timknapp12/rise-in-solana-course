@@ -20,6 +20,7 @@ export default function Home() {
   const [title, setTitle] = useState('');
   const [rating, setRating] = useState(0);
   const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -29,7 +30,7 @@ export default function Home() {
   }, []);
 
   const handleSubmit = () => {
-    const review = new Review(title, rating, description);
+    const review = new Review(title, rating, description, location);
     handleTransactionSubmit(review);
   };
 
@@ -97,6 +98,8 @@ export default function Home() {
           rating={rating}
           setTitle={setTitle}
           setDescription={setDescription}
+          location={location}
+          setLocation={setLocation}
           setRating={setRating}
           handleSubmit={handleSubmit}
         />
