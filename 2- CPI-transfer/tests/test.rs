@@ -14,21 +14,23 @@ use {
     std::str::FromStr,
 };
 
+// cargo test -- --nocapture
 #[tokio::test]
 async fn success() {
-    // Setup some pubkeys for the accounts
+    // set up some pubkeys for the accounts
     let program_id = Pubkey::from_str("TransferTokens11111111111111111111111111111").unwrap();
     let source = Keypair::new();
     let mint = Keypair::new();
     let destination = Keypair::new();
     let (authority_pubkey, _) = Pubkey::find_program_address(&[b"authority"], &program_id);
 
-    // Add the program to the test framework
+    // add the program to the test framework
     let program_test = ProgramTest::new(
         "spl_example_transfer_tokens",
         program_id,
         processor!(process_instruction),
     );
+
     let amount = 10_000;
     let decimals = 9;
     let rent = Rent::default();
@@ -36,7 +38,7 @@ async fn success() {
     // Start the program test
     let (mut banks_client, payer, recent_blockhash) = program_test.start().await;
 
-    // Setup the mint, used in `spl_token::instruction::transfer_checked`
+    // set up mint used in spl_token::instruction::transfer_checked
     let transaction = Transaction::new_signed_with_payer(
         &[
             system_instruction::create_account(
@@ -59,8 +61,8 @@ async fn success() {
         &[&payer, &mint],
         recent_blockhash,
     );
-    banks_client.process_transaction(transaction).await.unwrap();
 
+    banks_client.process_transaction(transaction).await.unwrap();
     // Setup the source account, owned by the program-derived address
     let transaction = Transaction::new_signed_with_payer(
         &[
@@ -147,13 +149,13 @@ async fn success() {
 
     // See that the transaction processes successfully
     banks_client.process_transaction(transaction).await.unwrap();
-
     // Check that the destination account now has `amount` tokens
     let account = banks_client
         .get_account(destination.pubkey())
         .await
         .unwrap()
         .unwrap();
+
     let token_account = Account::unpack(&account.data).unwrap();
     assert_eq!(token_account.amount, amount);
 }

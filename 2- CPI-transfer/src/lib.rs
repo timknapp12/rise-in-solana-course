@@ -1,4 +1,4 @@
-
+// template for Solana found at: https://github.com/Rise-In/Solana-Templates/tree/main/2-%20CPI-transfer-template
 use {
     solana_program::{
         account_info::{next_account_info, AccountInfo},
@@ -14,7 +14,7 @@ use {
         state::{Account, Mint},
     },
 };
-
+// CPI - cross program invocation - one program calls another program
 solana_program::entrypoint!(process_instruction);
 pub fn process_instruction(
     program_id: &Pubkey,
@@ -23,28 +23,25 @@ pub fn process_instruction(
 ) -> ProgramResult {
     // Create an iterator to safely reference accounts in the slice
     let account_info_iter = &mut accounts.iter();
-
     // As part of the program specification the instruction gives:
-    let source_info = next_account_info(account_info_iter)?; // 1.
-    let mint_info = next_account_info(account_info_iter)?; // 2.
-    let destination_info = next_account_info(account_info_iter)?; // 3.
-    let authority_info = next_account_info(account_info_iter)?; // 4.
-    let token_program_info = next_account_info(account_info_iter)?; // 5.
+    let source_info = next_account_info(account_info_iter)?;
+    let mint_info = next_account_info(account_info_iter)?;
+    let destination_info = next_account_info(account_info_iter)?;
+    let authority_info = next_account_info(account_info_iter)?;
+    let token_program_info = next_account_info(account_info_iter)?;
 
-    // In order to transfer from the source account, owned by the program-derived
-    // address, we must have the correct address and seeds.
+    // In order to transfer from the source account, owned by the program-derived address, we must have the correct address and seeds.
     let (expected_authority, bump_seed) = Pubkey::find_program_address(&[b"authority"], program_id);
     if expected_authority != *authority_info.key {
         return Err(ProgramError::InvalidSeeds);
     }
 
-    // The program transfers everything out of its account, so extract that from
-    // the account data.
+    // The program transfers everything out of its account, so extract that from the account data.
     let source_account = Account::unpack(&source_info.try_borrow_data()?)?;
     let amount = source_account.amount;
 
-    // The program uses `transfer_checked`, which requires the number of decimals
-    // in the mint, so extract that from the account data too.
+    // The program uses `transfer_checked`, which requires the number of decimals in the mint, so extract that from the account data too.
+
     let mint = Mint::unpack(&mint_info.try_borrow_data()?)?;
     let decimals = mint.decimals;
 
@@ -57,7 +54,7 @@ pub fn process_instruction(
             mint_info.key,
             destination_info.key,
             authority_info.key,
-            &[], // no multisig allowed
+            &[], // no multisig allowed,
             amount,
             decimals,
         )
@@ -67,7 +64,7 @@ pub fn process_instruction(
             mint_info.clone(),
             destination_info.clone(),
             authority_info.clone(),
-            token_program_info.clone(), // not required, but better for clarity
+            token_program_info.clone(),
         ],
         &[&[b"authority", &[bump_seed]]],
     )
